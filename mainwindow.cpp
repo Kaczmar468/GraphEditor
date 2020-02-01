@@ -1,18 +1,34 @@
 #include "mainwindow.h"
-#include "buttonbox.h"
 #include "area.h"
 #include <iostream>
 
-MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app)
-: m_Box_Main(Gtk::ORIENTATION_VERTICAL),
-  m_Top_Box(Gtk::ORIENTATION_HORIZONTAL)
+MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
+  m_Box_Main(Gtk::ORIENTATION_VERTICAL),
+  m_Top_Box(Gtk::ORIENTATION_HORIZONTAL),
+  m_Button_Move("Move"),
+  m_Button_Path("Add path"),
+  m_Button_Vertex("Add vertex"),
+  m_Button_Remove("Remove")
 {
   set_title("GRAPHEDITOR");
   add(m_Box_Main);
-  m_Box_Main.pack_start(m_Top_Box, Gtk::PACK_EXPAND_WIDGET, 0);
-  m_Box_Main.pack_start(m_Bottom_Box, Gtk::PACK_EXPAND_WIDGET, 0);
-
-
+  m_Button_Vertex.set_active(1);
+  MainWindow::on_click_Vertex();
+  m_Label.set_margin_top(8);
+  m_Label.set_margin_bottom(3);
+  m_AspectFrame.set(Gtk::ALIGN_FILL, Gtk::ALIGN_FILL, 2.0, false);
+  /*m_AspectFrame.set_hexpand(true);
+  m_AspectFrame.set_halign(Gtk::ALIGN_FILL);
+  m_AspectFrame.set_vexpand(true);
+  m_AspectFrame.set_valign(Gtk::ALIGN_FILL);*/
+  m_Box_Main.pack_start(m_Top_Box, Gtk::PACK_SHRINK, 0);
+  m_Box_Main.pack_start(m_Label, Gtk::PACK_SHRINK, 0);
+  m_Box_Main.pack_start(m_AspectFrame, Gtk::PACK_EXPAND_WIDGET, 0);
+  /*m_Bottom_Box.set_hexpand(true);
+  m_Bottom_Box.set_halign(Gtk::ALIGN_FILL);
+  m_Bottom_Box.set_vexpand(true);
+  m_Bottom_Box.set_valign(Gtk::ALIGN_FILL);*/
+  m_AspectFrame.add(m_Bottom_Box);
   m_refActionGroup = Gio::SimpleActionGroup::create();
 
   m_refActionGroup->add_action("import",
@@ -70,20 +86,114 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app)
   auto gmenu = Glib::RefPtr<Gio::Menu>::cast_dynamic(object);
   auto pMenuBar = Gtk::make_managed<Gtk::MenuBar>(gmenu);
   m_Top_Box.pack_start(*pMenuBar, Gtk::PACK_SHRINK);
+  //m_Top_Box.set_border_width(2);
+  //m_Bottom_Box.set_border_width(10);
 
-  m_Top_Box.set_border_width(10);
-  m_Bottom_Box.set_border_width(10);
+  m_ButtonBox.set_border_width(1);
+  m_ButtonBox.set_layout(Gtk::BUTTONBOX_START);
+  m_ButtonBox.set_spacing(2);
 
-  m_Top_Box.pack_start(*Gtk::make_managed<ButtonBox>(), Gtk::PACK_EXPAND_WIDGET);
+  m_image_Move=new Gtk::Image("icons/move20.png");
+  m_Button_Move.set_image_position(Gtk::POS_LEFT);
+  m_Button_Move.set_image(*m_image_Move);
+  m_image_Path=new Gtk::Image("icons/path20.png");
+  m_Button_Path.set_image_position(Gtk::POS_LEFT);
+  m_Button_Path.set_image(*m_image_Path);
+  m_image_Vertex=new Gtk::Image("icons/vertex20.png");
+  m_Button_Vertex.set_image_position(Gtk::POS_LEFT);
+  m_Button_Vertex.set_image(*m_image_Vertex);
+  m_image_Remove=new Gtk::Image("icons/remove20.png");
+  m_Button_Remove.set_image_position(Gtk::POS_LEFT);
+  m_Button_Remove.set_image(*m_image_Remove);
 
-  m_Bottom_Box.set_size_request(800,500);
-  m_Bottom_Box.pack_start(area, Gtk::PACK_EXPAND_WIDGET);
+  m_Button_Move.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Move) );
+  m_Button_Path.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Path) );
+  m_Button_Vertex.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Vertex) );
+  m_Button_Remove.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Remove) );
+
+  m_ButtonBox.add(m_Button_Move);
+  m_ButtonBox.add(m_Button_Vertex);
+  m_ButtonBox.add(m_Button_Path);
+  m_ButtonBox.add(m_Button_Remove);
+
+  m_Combo_Algorithms.append("Choose Algorithm");
+  m_Combo_Algorithms.append("BFS");
+  m_Combo_Algorithms.append("DFS");
+  m_Combo_Algorithms.append("Minimum spanning tree");
+  m_Combo_Algorithms.append("Number of connected components");
+  m_Combo_Algorithms.append("Shortest path");
+  m_Combo_Algorithms.set_active(0);
+
+  m_ButtonBox.add(m_Combo_Algorithms);
+  m_Combo_Algorithms.signal_changed().connect( sigc::mem_fun(*this, &MainWindow::on_combo_changed) );
+
+  m_Top_Box.pack_start(m_ButtonBox, Gtk::PACK_EXPAND_WIDGET);
+
+  m_Bottom_Box.set_size_request(1000,500);
+  m_Bottom_Box.pack_start(area, Gtk::PACK_EXPAND_WIDGET, 0);
 
   show_all_children();
 }
 
 MainWindow::~MainWindow()
 {
+  delete m_image_Move;
+  delete m_image_Path;
+  delete m_image_Vertex;
+  delete m_image_Remove;
+}
+
+void MainWindow::on_click_Move(){
+   if(m_Button_Move.get_active()==false)return;
+   if(m_Button_Move.get_active()){
+     if(m_Button_Path.get_active())m_Button_Path.set_active(0);
+     if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
+     if(m_Button_Remove.get_active())m_Button_Remove.set_active(0);
+   }
+   m_Label.set_text("Click to move a vertex");
+   std::cout << "Move clicked." << std::endl;
+}
+
+void MainWindow::on_click_Path(){
+   if(m_Button_Path.get_active()==false)return;
+   if(m_Button_Path.get_active()){
+     if(m_Button_Move.get_active())m_Button_Move.set_active(0);
+     if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
+     if(m_Button_Remove.get_active())m_Button_Remove.set_active(0);
+   }
+   m_Label.set_text("Click to add a path");
+   std::cout << "Path clicked." << std::endl;
+}
+
+void MainWindow::on_click_Vertex(){
+   if(m_Button_Vertex.get_active()==false)return;
+   if(m_Button_Vertex.get_active()){
+     if(m_Button_Path.get_active())m_Button_Path.set_active(0);
+     if(m_Button_Move.get_active())m_Button_Move.set_active(0);
+     if(m_Button_Remove.get_active())m_Button_Remove.set_active(0);
+   }
+   m_Label.set_text("Click to add vertex");
+   std::cout << "Vertex clicked." << std::endl;
+}
+
+void MainWindow::on_click_Remove(){
+   if(m_Button_Remove.get_active()==false)return;
+   if(m_Button_Remove.get_active()){
+     if(m_Button_Path.get_active())m_Button_Path.set_active(0);
+     if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
+     if(m_Button_Move.get_active())m_Button_Move.set_active(0);
+   }
+   m_Label.set_text("Click to remove vertex or path");
+   std::cout << "Remove clicked." << std::endl;
+}
+
+void MainWindow::on_combo_changed()
+{
+  Glib::ustring text = m_Combo_Algorithms.get_active_text();
+  if(!(text.empty())){
+    m_Label.set_text("Combo changed: " + text);
+    std::cout << "Combo changed: " << text << std::endl;
+  }
 }
 
 void MainWindow::on_action_quit()
