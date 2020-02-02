@@ -1,0 +1,7 @@
+c Graph 1
+p edge 5 5
+e 1 2
+e 1 4
+e 2 4
+e 2 5
+e 4 5

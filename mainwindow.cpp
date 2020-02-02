@@ -2,6 +2,7 @@
 #include "area.h"
 #include <iostream>
 #include <string>
+#include <fstream>
 
 MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_Box_Main(Gtk::ORIENTATION_VERTICAL),
@@ -164,6 +165,7 @@ void MainWindow::on_click_Move(){
     option_off();
     return;
   }
+  m_Combo_Algorithms.set_active(0);
    if(m_Button_Move.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
@@ -180,6 +182,7 @@ void MainWindow::on_click_Path(){
     option_off();
     return;
   }
+  m_Combo_Algorithms.set_active(0);
    if(m_Button_Path.get_active()){
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
@@ -196,6 +199,7 @@ void MainWindow::on_click_Vertex(){
     option_off();
     return;
   }
+  m_Combo_Algorithms.set_active(0);
    if(m_Button_Vertex.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
@@ -212,6 +216,7 @@ void MainWindow::on_click_Remove_Vertex(){
     option_off();
     return;
   }
+  m_Combo_Algorithms.set_active(0);
    if(m_Button_Remove_Vertex.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
@@ -228,6 +233,7 @@ void MainWindow::on_click_Remove_Path(){
     option_off();
     return;
   }
+  m_Combo_Algorithms.set_active(0);
    if(m_Button_Remove_Path.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
@@ -242,6 +248,13 @@ void MainWindow::on_click_Remove_Path(){
 void MainWindow::on_combo_changed()
 {
   Glib::ustring text = m_Combo_Algorithms.get_active_text();
+  if(text!="Choose Algorithm"){
+    if(m_Button_Path.get_active())m_Button_Path.set_active(0);
+    if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
+    if(m_Button_Move.get_active())m_Button_Move.set_active(0);
+    if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
+    if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
+  }
   if(!(text.empty())){
     m_Label.set_text("Combo changed: " + text);
     std::cout << "Combo changed: " << text << std::endl;
@@ -255,12 +268,109 @@ void MainWindow::on_action_quit()
 
 void MainWindow::on_action_import()
 {
-   std::cout << "Importing a file." << std::endl;
+  std::cout << "Importing a file." << std::endl;  
+  Gtk::FileChooserDialog dialog("Please choose a file",
+          Gtk::FILE_CHOOSER_ACTION_OPEN);
+  dialog.set_transient_for(*this);
+  dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+  dialog.add_button("_Open", Gtk::RESPONSE_OK);
+
+  auto filter_any = Gtk::FileFilter::create();
+  filter_any->set_name("DIMACS");
+  filter_any->add_pattern("*");
+  filter_any->add_pattern("*.bliss");
+  dialog.add_filter(filter_any);
+
+  int result = dialog.run();
+  std::string filename; 
+  switch(result)
+  {
+    case(Gtk::RESPONSE_OK):
+    {
+      std::cout << "Open clicked." << std::endl;
+      filename = dialog.get_filename();
+      std::cout << "File selected: " <<  filename << std::endl;
+      break;
+    }
+    case(Gtk::RESPONSE_CANCEL):
+    {
+      std::cout << "Cancel clicked." << std::endl;
+      return;
+    }
+    default:
+    {
+      std::cout << "Unexpected button clicked." << std::endl;
+      return;
+    }
+  }
+  std::ifstream file(filename);
+  if(!file.good()){
+      std::cout << "Can't open a file: " << filename << std::endl;
+      return;
+  }
+  std::string temp, comment;
+  while(file >> temp){
+    if(temp=="e"){
+      int a,b;
+      file >> a >> b;
+      if(area.add_path(a,b)==false){
+        std::cerr << "Didn't add a path from " << a << " to " << b << std::endl;
+      }
+    }else if(temp=="c"){
+      getline(file,comment);
+      std::cout << "Comment: " << comment << std::endl;
+    }else if(temp=="p"){
+      int n,m;
+      file >> comment >> n >> m;
+      area.new_graph(n);
+    }else{
+      std::cerr << "Didn't recognize: " << temp;
+    }
+  }
+  area.finish_reading();
+  m_Button_Move.set_active(1);
+  file.close();
 }
 
 void MainWindow::on_action_export()
 {
   std::cout << "Exporting a file." << std::endl;
+  Gtk::FileChooserDialog dialog("Please choose a file",
+          Gtk::FILE_CHOOSER_ACTION_SAVE);
+  dialog.set_transient_for(*this);
+  dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+  dialog.add_button("_Save", Gtk::RESPONSE_OK);
+
+  auto filter = Gtk::FileFilter::create();
+  filter->set_name("DIMACS");
+  filter->add_pattern("*");
+  filter->add_pattern("*.bliss");
+  dialog.add_filter(filter);
+
+  int result = dialog.run();
+  switch(result)
+  {
+    case(Gtk::RESPONSE_OK):
+    {
+      std::cout << "Save clicked." << std::endl;
+      std::string filename = dialog.get_filename();
+      std::cout << "File selected: " <<  filename << std::endl;
+      if(area.export_graph(filename)==false){
+        std::cout << "Can't open a file: " << filename << std::endl;
+      }
+      return;
+    }
+    case(Gtk::RESPONSE_CANCEL):
+    {
+      std::cout << "Cancel clicked." << std::endl;
+      return;
+    }
+    default:
+    {
+      std::cout << "Unexpected button clicked." << std::endl;
+      return;
+    }
+  }
 }
 
 void MainWindow::on_action_settings()

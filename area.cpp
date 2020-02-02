@@ -5,15 +5,45 @@
 #include <string>
 #include <set>
 #include <unordered_map>
+#include <fstream>
 
 Area::Area()
 {  
   add_events(Gdk::BUTTON_PRESS_MASK);
-  std::cerr << "HOMO LUDENS\n\n\n";
 }
 
 Area::~Area()
 {
+}
+
+void Area::finish_reading(){
+  queue_draw();
+}
+
+void Area::new_graph(unsigned int n){
+  MAX_V=n;
+  was_first_click=0;
+  points.clear();
+  paths.clear();
+  double delta=1.0/(1.0+sqrt((double)(n/2.0))),cur_x=delta,cur_y=delta;
+  for(int i=1;i<=n;i++){
+  std::cout << cur_x << " " << cur_y << " " << delta << std::endl;
+    points[i]={cur_x,cur_y};
+    cur_x+=delta;
+    if(cur_x>2.0-delta/2.0){
+      cur_x=delta;
+    cur_y+=delta;
+    }
+  }  
+  std::cout << cur_x << " " << cur_y << " " << delta << std::endl;
+}
+
+bool Area::add_path(int a,int b){
+  if(a<=MAX_V && a>0 && b>0 && b<=MAX_V){
+    paths.insert({std::min(a,b),std::max(a,b)});
+    return 1;
+  }
+  return 0;
 }
 
 double dist(std::pair<double,double> a, std::pair<double,double> b){
@@ -196,5 +226,17 @@ bool Area::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   cr->move_to(0, height);
   cr->line_to(width, 0);*/
   cr->stroke();
+  return true;
+}
+
+bool Area::export_graph(std::string filename){
+  std::ofstream file(filename);
+  if(!file.good())
+    return false;
+  file << "p edge " << points.size() << " " << paths.size() << std::endl;
+  for(auto u: paths){
+    file << "e " << u.first << " " << u.second << std::endl;
+  }
+  file.close();
   return true;
 }

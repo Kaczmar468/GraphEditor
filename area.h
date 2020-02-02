@@ -13,6 +13,10 @@ public:
   Area();
   virtual ~Area(); 
   void set_mode(std::string mode);
+  bool add_path(int a,int b);
+  void new_graph(unsigned int n);
+  void finish_reading();
+  bool export_graph(std::string);
 
 protected:
   bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
