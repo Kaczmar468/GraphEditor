@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "area.h"
 #include <iostream>
+#include <string>
 
 MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_Box_Main(Gtk::ORIENTATION_VERTICAL),
@@ -8,7 +9,8 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_Button_Move("Move"),
   m_Button_Path("Add path"),
   m_Button_Vertex("Add vertex"),
-  m_Button_Remove("Remove")
+  m_Button_Remove_Vertex("Remove vertex"),
+  m_Button_Remove_Path("Remove path")
 {
   set_title("GRAPHEDITOR");
   add(m_Box_Main);
@@ -102,19 +104,24 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_image_Vertex=new Gtk::Image("icons/vertex20.png");
   m_Button_Vertex.set_image_position(Gtk::POS_LEFT);
   m_Button_Vertex.set_image(*m_image_Vertex);
-  m_image_Remove=new Gtk::Image("icons/remove20.png");
-  m_Button_Remove.set_image_position(Gtk::POS_LEFT);
-  m_Button_Remove.set_image(*m_image_Remove);
+  m_image_Remove_Vertex=new Gtk::Image("icons/remove20.png");
+  m_Button_Remove_Vertex.set_image_position(Gtk::POS_LEFT);
+  m_Button_Remove_Vertex.set_image(*m_image_Remove_Vertex);
+  m_image_Remove_Path=new Gtk::Image("icons/remove20.png");
+  m_Button_Remove_Path.set_image_position(Gtk::POS_LEFT);
+  m_Button_Remove_Path.set_image(*m_image_Remove_Path);
 
   m_Button_Move.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Move) );
   m_Button_Path.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Path) );
   m_Button_Vertex.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Vertex) );
-  m_Button_Remove.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Remove) );
+  m_Button_Remove_Vertex.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Remove_Vertex) );
+  m_Button_Remove_Path.signal_clicked().connect( sigc::mem_fun(*this,&MainWindow::on_click_Remove_Path) );
 
   m_ButtonBox.add(m_Button_Move);
   m_ButtonBox.add(m_Button_Vertex);
   m_ButtonBox.add(m_Button_Path);
-  m_ButtonBox.add(m_Button_Remove);
+  m_ButtonBox.add(m_Button_Remove_Vertex);
+  m_ButtonBox.add(m_Button_Remove_Path);
 
   m_Combo_Algorithms.append("Choose Algorithm");
   m_Combo_Algorithms.append("BFS");
@@ -140,50 +147,95 @@ MainWindow::~MainWindow()
   delete m_image_Move;
   delete m_image_Path;
   delete m_image_Vertex;
-  delete m_image_Remove;
+  delete m_image_Remove_Path;
+  delete m_image_Remove_Vertex;
+}
+
+void MainWindow::option_off(){
+  if(m_Button_Move.get_active()==0 && m_Button_Vertex.get_active()==0 && m_Button_Path.get_active()==0
+    && m_Button_Remove_Vertex.get_active()==0 && m_Button_Remove_Path.get_active()==0){
+   m_Label.set_text("Click a button to choose a tool");
+   area.set_mode("option_off");
+  }
 }
 
 void MainWindow::on_click_Move(){
-   if(m_Button_Move.get_active()==false)return;
+   if(m_Button_Move.get_active()==false){
+    option_off();
+    return;
+  }
    if(m_Button_Move.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
-     if(m_Button_Remove.get_active())m_Button_Remove.set_active(0);
+     if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
+     if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
    m_Label.set_text("Click to move a vertex");
+   area.set_mode("move_vertex");
    std::cout << "Move clicked." << std::endl;
 }
 
 void MainWindow::on_click_Path(){
-   if(m_Button_Path.get_active()==false)return;
+   if(m_Button_Path.get_active()==false){
+    option_off();
+    return;
+  }
    if(m_Button_Path.get_active()){
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
-     if(m_Button_Remove.get_active())m_Button_Remove.set_active(0);
+     if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
+     if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
    m_Label.set_text("Click to add a path");
+   area.set_mode("add_path");
    std::cout << "Path clicked." << std::endl;
 }
 
 void MainWindow::on_click_Vertex(){
-   if(m_Button_Vertex.get_active()==false)return;
+   if(m_Button_Vertex.get_active()==false){
+    option_off();
+    return;
+  }
    if(m_Button_Vertex.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
-     if(m_Button_Remove.get_active())m_Button_Remove.set_active(0);
+     if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
+     if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
    m_Label.set_text("Click to add vertex");
+   area.set_mode("add_vertex");
    std::cout << "Vertex clicked." << std::endl;
 }
 
-void MainWindow::on_click_Remove(){
-   if(m_Button_Remove.get_active()==false)return;
-   if(m_Button_Remove.get_active()){
+void MainWindow::on_click_Remove_Vertex(){
+   if(m_Button_Remove_Vertex.get_active()==false){
+    option_off();
+    return;
+  }
+   if(m_Button_Remove_Vertex.get_active()){
      if(m_Button_Path.get_active())m_Button_Path.set_active(0);
      if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
+     if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
-   m_Label.set_text("Click to remove vertex or path");
+   m_Label.set_text("Click on vertex to remove it");
+   area.set_mode("remove_vertex");
+   std::cout << "Remove clicked." << std::endl;
+}
+
+void MainWindow::on_click_Remove_Path(){
+   if(m_Button_Remove_Path.get_active()==false){
+    option_off();
+    return;
+  }
+   if(m_Button_Remove_Path.get_active()){
+     if(m_Button_Path.get_active())m_Button_Path.set_active(0);
+     if(m_Button_Vertex.get_active())m_Button_Vertex.set_active(0);
+     if(m_Button_Move.get_active())m_Button_Move.set_active(0);
+     if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
+   }
+   m_Label.set_text("Click on two vertexes to remove path between them");
+   area.set_mode("remove_path");
    std::cout << "Remove clicked." << std::endl;
 }
 
