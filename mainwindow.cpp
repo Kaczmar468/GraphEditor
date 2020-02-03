@@ -165,7 +165,7 @@ void MainWindow::on_click_Move(){
      if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
      if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
-   m_Label.set_text("Click to move a vertex");
+   m_Label.set_text("Click on vertex to choose it. Then click on the destination");
    area.set_mode("move_vertex");
 }
 
@@ -181,7 +181,7 @@ void MainWindow::on_click_Path(){
      if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
      if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
-   m_Label.set_text("Click to add an edge");
+   m_Label.set_text("Click on two vertices to add edge between them");
    area.set_mode("add_path");
 }
 
@@ -229,7 +229,7 @@ void MainWindow::on_click_Remove_Path(){
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
      if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
    }
-   m_Label.set_text("Click on two vertexes to remove edge between them");
+   m_Label.set_text("Click on two vertices to remove edge between them");
    area.set_mode("remove_path");
 }
 
@@ -249,9 +249,12 @@ void MainWindow::on_combo_changed()
       area.set_mode("DFS");
       m_Label.set_text("Choose a DFS source");
     }else if(text=="Connected components"){
+      int num=area.nocc();
       Glib::ustring temp="Your graph has " ;
-      temp+=std::to_string(area.nocc());
-      temp+=" connected components";
+      temp+=std::to_string(num);
+      temp+=" connected component";
+      if(num!=1)
+        temp+="s";
       m_Label.set_text(temp);
     }else
       std::cout << "ComboBox didn't recognize text: " << text << std::endl;
