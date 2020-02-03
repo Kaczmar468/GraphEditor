@@ -8,4 +8,5 @@ int main(int argc, char *argv[])
   MainWindow window(app);
 
   return app->run(window);
+  //area bug
 }
