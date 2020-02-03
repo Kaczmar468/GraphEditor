@@ -15,7 +15,12 @@ https://www.gtkmm.org/en/download.html
 
 <b>Description</b>
 
-Program can be used to visualize and edit undirected graphs. User can create and edit them using available tools like "Add vertex", "Add path", "Remove vertex", "Remove path" or "Move". One can also export/import graphs from files. GraphEditor supports undirected graph in DIMACS without edge weights nor colors. Program can also visualize algorithms like: BFS, DFS and calculate the number of connected components. User can also set the color of vertices, path and background.
+Program can be used to visualize and edit undirected graphs. User can create and edit them using available tools like "Add vertex", "Add path", "Remove vertex", "Remove edge" or "Move". One can also export/import graphs from files. GraphEditor supports undirected graph in DIMACS without edge weights nor colors. Program can also visualize algorithms like: BFS, DFS and calculate the number of connected components. User can also set the color of vertices, edges and background.
+
+"Icons made by Pixel perfect from www.flaticon.com"
+"Icons made by Freepik from www.flaticon.com"
+
+Example graphs are mostly downloaded from http://pallini.di.uniroma1.it/Graphs.html.
 
 <b>About DIMACS format</b>
 An input file contains all the information about an undirected graph. 
@@ -27,7 +32,7 @@ Files are assumed to be well-formed and internally consistent: node identifier v
 
 Comments. Comment lines give human-readable information about the file and are ignored by programs. Comment lines can appear anywhere in the file. Each comment line begins with a lower-case character c. 
 ```
-c this is an example of a comment line.
+c //this is an example of a comment line.
 ```
 
 Problem line. There is one problem line per input file. The problem line must appear before any node or arc descriptor lines. The problem line has the following format. 

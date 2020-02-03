@@ -8,12 +8,12 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_Box_Main(Gtk::ORIENTATION_VERTICAL),
   m_Top_Box(Gtk::ORIENTATION_HORIZONTAL),
   m_Button_Move("Move"),
-  m_Button_Path("Add path"),
+  m_Button_Path("Add edge"),
   m_Button_Vertex("Add vertex"),
   m_Button_Remove_Vertex("Remove vertex"),
-  m_Button_Remove_Path("Remove path")
+  m_Button_Remove_Path("Remove edge")
 {
-  set_title("GRAPHEDITOR");
+  set_title("GraphEditor");
   add(m_Box_Main);
   m_Button_Vertex.set_active(1);
   MainWindow::on_click_Vertex();
@@ -119,9 +119,9 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
 
   m_Combo_Colors.append("Change color");
   m_Combo_Colors.append("Vertex");
-  m_Combo_Colors.append("Path");
+  m_Combo_Colors.append("Edge");
   m_Combo_Colors.append("Special vertex");
-  m_Combo_Colors.append("Special path");
+  m_Combo_Colors.append("Special edge");
   m_Combo_Colors.append("Backgroung");
   m_Combo_Colors.set_active(0);
 
@@ -148,7 +148,7 @@ MainWindow::~MainWindow()
 void MainWindow::option_off(){
   if(m_Button_Move.get_active()==0 && m_Button_Vertex.get_active()==0 && m_Button_Path.get_active()==0
     && m_Button_Remove_Vertex.get_active()==0 && m_Button_Remove_Path.get_active()==0){
-   m_Label.set_text("Click a button to choose a tool");
+   m_Label.set_text("Click button to choose a tool");
    area.set_mode("option_off");
   }
 }
@@ -181,7 +181,7 @@ void MainWindow::on_click_Path(){
      if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
      if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
    }
-   m_Label.set_text("Click to add a path");
+   m_Label.set_text("Click to add an edge");
    area.set_mode("add_path");
 }
 
@@ -229,7 +229,7 @@ void MainWindow::on_click_Remove_Path(){
      if(m_Button_Move.get_active())m_Button_Move.set_active(0);
      if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
    }
-   m_Label.set_text("Click on two vertexes to remove path between them");
+   m_Label.set_text("Click on two vertexes to remove edge between them");
    area.set_mode("remove_path");
 }
 
@@ -265,7 +265,6 @@ void MainWindow::on_action_quit()
 
 void MainWindow::on_action_import()
 {
-  std::cout << "Importing a file." << std::endl;  
   Gtk::FileChooserDialog dialog("Please choose a file",
           Gtk::FILE_CHOOSER_ACTION_OPEN);
   dialog.set_transient_for(*this);
@@ -284,14 +283,11 @@ void MainWindow::on_action_import()
   {
     case(Gtk::RESPONSE_OK):
     {
-      std::cout << "Open clicked." << std::endl;
       filename = dialog.get_filename();
-      std::cout << "File selected: " <<  filename << std::endl;
       break;
     }
     case(Gtk::RESPONSE_CANCEL):
     {
-      std::cout << "Cancel clicked." << std::endl;
       return;
     }
     default:
@@ -305,17 +301,17 @@ void MainWindow::on_action_import()
       std::cout << "Can't open a file: " << filename << std::endl;
       return;
   }
+  area.new_graph(0);
   std::string temp, comment;
   while(file >> temp){
     if(temp=="e"){
       int a,b;
       file >> a >> b;
       if(area.add_path(a,b)==false){
-        std::cerr << "Didn't add a path from " << a << " to " << b << std::endl;
+        std::cerr << "Didn't add edge from " << a << " to " << b << std::endl;
       }
     }else if(temp=="c"){
       getline(file,comment);
-      std::cout << "Comment: " << comment << std::endl;
     }else if(temp=="p"){
       int n,m;
       file >> comment >> n >> m;
@@ -331,7 +327,6 @@ void MainWindow::on_action_import()
 
 void MainWindow::on_action_export()
 {
-  std::cout << "Exporting a file." << std::endl;
   Gtk::FileChooserDialog dialog("Please choose a file",
           Gtk::FILE_CHOOSER_ACTION_SAVE);
   dialog.set_transient_for(*this);
@@ -349,9 +344,7 @@ void MainWindow::on_action_export()
   {
     case(Gtk::RESPONSE_OK):
     {
-      std::cout << "Save clicked." << std::endl;
       std::string filename = dialog.get_filename();
-      std::cout << "File selected: " <<  filename << std::endl;
       if(area.export_graph(filename)==false){
         std::cout << "Can't open a file: " << filename << std::endl;
       }
@@ -359,7 +352,6 @@ void MainWindow::on_action_export()
     }
     case(Gtk::RESPONSE_CANCEL):
     {
-      std::cout << "Cancel clicked." << std::endl;
       return;
     }
     default:
@@ -400,11 +392,11 @@ void MainWindow::on_combo_colors_changed(){
   }
   if(text=="Vertex"){
     area.set_color(m_Color,1);
-  }else if(text=="Path"){
+  }else if(text=="Edge"){
     area.set_color(m_Color,2);
   }else if(text=="Special vertex"){
     area.set_color(m_Color,3);
-  }else if(text=="Special path"){
+  }else if(text=="Special edge"){
     area.set_color(m_Color,4);
   }else if(text=="Backgroung"){
     area.set_color(m_Color,5);

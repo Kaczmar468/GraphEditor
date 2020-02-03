@@ -33,7 +33,7 @@ protected:
   std::unordered_map <int,std::pair<double,double> > points;
   std::set <std::pair<int,int> > paths;
   std::set <std::pair<int,int> > special_paths;
-  double cur_width=1000,cur_height=500, R=0.04, LINE_WIDTH=0.02;
+  double cur_width,cur_height, R=0.04, LINE_WIDTH=0.02;
   Algo m_Algo;
   Gdk::RGBA m_Col_Vertex, m_Col_Vertex_s, m_Col_Path, m_Col_Path_s, m_Col_Back;
 };

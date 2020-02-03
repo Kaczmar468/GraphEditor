@@ -26,6 +26,7 @@ void Area::new_graph(unsigned int n){
   was_first_click=0;
   points.clear();
   paths.clear();
+  special_paths.clear();
   double delta=1.0/(1.0+sqrt((double)(n/2.0))),cur_x=delta,cur_y=delta;
   for(int i=1;i<=n;i++){
     points[i]={cur_x,cur_y};
@@ -91,9 +92,6 @@ bool Area::on_button_press_event(GdkEventButton *event){
       std::pair<int,int> new_path = {std::min(found_point_id,last_point_id),std::max(found_point_id,last_point_id)};
       if(paths.find(new_path)==paths.end() && found_point!=last_point){
         paths.insert(new_path);
-      }else{
-        std::cerr << "A path from { " << last_point.first << " , " << last_point.second << " } to { "
-          << found_point.first << " , " << found_point.second << " } was NOT added" << std::endl;
       }
     }
     queue_draw();
@@ -231,6 +229,7 @@ bool Area::export_graph(std::string filename){
   std::ofstream file(filename);
   if(!file.good())
     return false;
+  file << "p edge " << points.size() << " " << paths.size() << std::endl;
   for(auto u: paths)
     file << "e " << u.first << " " << u.second << std::endl;
   file.close();
@@ -273,7 +272,7 @@ void Area::set_color(Gdk::RGBA n_Col,int a){
       break;
     }
     default:{
-      std::cerr << "Wrong color" << std::endl;
+      std::cerr << "Didn't mach a color" << std::endl;
     }
   }
 }
