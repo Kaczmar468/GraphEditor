@@ -12,7 +12,6 @@ class Area : public Gtk::DrawingArea
 {
 public:
   Area();
-  virtual ~Area(); 
   void set_mode(std::string mode);
   bool add_path(int a,int b);
   void new_graph(unsigned int n);
@@ -27,10 +26,10 @@ protected:
   bool on_button_press_event(GdkEventButton *event);
   int find_vertex(std::pair<double,double> point);
 
-  int MAX_V=0,last_point_id,special_point_id,special_point_2_id;
+  int MAX_V=0,last_point_id;
   bool was_first_click=1;
-  std::pair<double,double> last_point={22.0,22.0},special_point, special_point_2;
-  std::string MODE="initial";
+  std::pair<double,double> last_point;
+  std::string MODE;
   std::unordered_map <int,std::pair<double,double> > points;
   std::set <std::pair<int,int> > paths;
   std::set <std::pair<int,int> > special_paths;

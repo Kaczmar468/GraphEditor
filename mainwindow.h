@@ -3,7 +3,6 @@
 
 #include <gtkmm.h>
 #include <gtkmm/comboboxtext.h>
-#include <gtkmm/liststore.h>
 #include "area.h"
 
 class MainWindow : public Gtk::Window

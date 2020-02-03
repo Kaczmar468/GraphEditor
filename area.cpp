@@ -14,11 +14,7 @@ Area::Area()
   m_Col_Vertex_s.set_rgba(0.2, 0.0, 0.6,0.9); 
   m_Col_Path.set_rgba(0.6, 0.2, 0.0, 0.6); 
   m_Col_Path_s.set_rgba(0.2, 0.2, 0.5, 0.8); 
-  m_Col_Back.set_rgba(0.0,0.0,0.0,1.0);
-}
-
-Area::~Area()
-{
+  m_Col_Back.set_rgba(1.0,1.0,1.0,0.0);
 }
 
 void Area::finish_reading(){
@@ -32,7 +28,6 @@ void Area::new_graph(unsigned int n){
   paths.clear();
   double delta=1.0/(1.0+sqrt((double)(n/2.0))),cur_x=delta,cur_y=delta;
   for(int i=1;i<=n;i++){
-  std::cout << cur_x << " " << cur_y << " " << delta << std::endl;
     points[i]={cur_x,cur_y};
     cur_x+=delta;
     if(cur_x>2.0-delta/2.0){
@@ -40,7 +35,6 @@ void Area::new_graph(unsigned int n){
     cur_y+=delta;
     }
   }  
-  std::cout << cur_x << " " << cur_y << " " << delta << std::endl;
 }
 
 bool Area::add_path(int a,int b){
@@ -67,21 +61,18 @@ int Area::find_vertex(std::pair<double,double> point){
       return u.first;
     }
   }
-  //std::cerr << "nie znalazl\n";
   return -1;
 }
 
 bool Area::on_button_press_event(GdkEventButton *event){
   std::pair<double,double> mouse_point={event->x*2.0/cur_width,event->y/cur_height};
   if(MODE=="add_vertex"){
-    std::cerr << "New point in { " << mouse_point.first << " , " << mouse_point.second << " }" << std::endl;
     points[++MAX_V]=mouse_point;
     queue_draw();
     return true;
   }
   int found_point_id=find_vertex(mouse_point);
-  //std::cerr << "Found point with id = " << found_point_id << std::endl;
-  std::pair<double,double> found_point={11.0,11.0};
+  std::pair<double,double> found_point;
   special_paths.clear();
   if(found_point_id!=-1)
     found_point=points[found_point_id];
@@ -95,15 +86,11 @@ bool Area::on_button_press_event(GdkEventButton *event){
       last_point=found_point;
       last_point_id=found_point_id;
       was_first_click=1;
-      std::cerr << "First vertex { " << last_point.first << " , " << last_point.second << " } for mouse_point { "
-        << mouse_point.first << " , " << mouse_point.second << " } " << std::endl;
     }else{
       was_first_click=0;
       std::pair<int,int> new_path = {std::min(found_point_id,last_point_id),std::max(found_point_id,last_point_id)};
       if(paths.find(new_path)==paths.end() && found_point!=last_point){
         paths.insert(new_path);
-        std::cerr << "Added path from { " << last_point.first << " , " << last_point.second << " } to { "
-          << found_point.first << " , " << found_point.second << " } " << std::endl;
       }else{
         std::cerr << "A path from { " << last_point.first << " , " << last_point.second << " } to { "
           << found_point.first << " , " << found_point.second << " } was NOT added" << std::endl;
@@ -113,17 +100,12 @@ bool Area::on_button_press_event(GdkEventButton *event){
     return true;
   }
   if(MODE=="move_vertex"){
-  //std::cerr << "Found point222 " << found_point_id << std::endl;
     if(was_first_click){
       was_first_click=0;
-      //points.erase(last_point_id);
       points[last_point_id]=mouse_point;
-      std::cerr << "Moved vertex from { " << last_point.first << " , " << last_point.second << " } to { "
-        << mouse_point.first << " , " << mouse_point.second << " } " << std::endl;
       queue_draw();
       return true;
     }
-  //std::cerr << "Found point 333" << found_point_id << std::endl;
     if(found_point_id==-1){
        was_first_click=0;
        queue_draw();
@@ -132,8 +114,6 @@ bool Area::on_button_press_event(GdkEventButton *event){
     last_point=found_point;
     last_point_id=found_point_id;
     was_first_click=1;
-    std::cerr << "Detected vertex { " << last_point.first << " , " << last_point.second << " } for mouse_point { "
-      << mouse_point.first << " , " << mouse_point.second << " } " << std::endl;
     queue_draw();
     return true;
   }
@@ -142,14 +122,12 @@ bool Area::on_button_press_event(GdkEventButton *event){
        queue_draw();
        return true;
     }
-    //std:: cerr << points.size();
     points.erase(found_point_id);
     std::set <std::pair<int,int> > temp=paths;
     paths.clear();
     for(auto u:temp)
       if(u.first!=found_point_id && u.second!=found_point_id)
         paths.insert(u);
-    std::cerr << "Erased a point width id = " << found_point_id << std::endl;
     queue_draw();
     return true;
   }
@@ -163,26 +141,19 @@ bool Area::on_button_press_event(GdkEventButton *event){
       last_point=found_point;
       last_point_id=found_point_id;
       was_first_click=1;
-      std::cerr << "First vertex { " << last_point.first << " , " << last_point.second << " } for mouse_point { "
-        << mouse_point.first << " , " << mouse_point.second << " } " << std::endl;
     }else{
       was_first_click=0;
       std::pair<int,int> new_path = {std::min(found_point_id,last_point_id),std::max(found_point_id,last_point_id)};
       if(found_point_id==last_point_id || paths.find(new_path)==paths.end()){
-        std::cerr << "A path from { " << last_point.first << " , " << last_point.second << " } to { "
-          << found_point.first << " , " << found_point.second << " } was NOT removed" << std::endl;
           queue_draw();
           return true;
       }
       paths.erase(paths.find(new_path));
-        std::cerr << "Removed path from { " << last_point.first << " , " << last_point.second << " } to { "
-          << found_point.first << " , " << found_point.second << " } " << std::endl;
     }
     queue_draw();
     return true;
   }
   if(MODE=="option_off"){
-    std::cerr << "Click a button to choose a tool" << std::endl;
     queue_draw();
     return 0;
   }
@@ -191,14 +162,11 @@ bool Area::on_button_press_event(GdkEventButton *event){
        queue_draw();
        return true;
     }
-    std::cerr << "BFS/DFS" << std::endl;
     m_Algo.set_graph(borrow_graph(found_point_id),paths);
     if(MODE=="BFS")
       special_paths=m_Algo.BFS();
     else
       special_paths=m_Algo.DFS();
-    for(auto u:special_paths)
-      std::cerr << "{ " << u.first << " , " << u.second << " }\n";
     queue_draw();
     return true;
   }
@@ -215,15 +183,16 @@ bool Area::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   cur_width=width;
   cur_height=height;
 
-  //std::cerr << width << " " << height << std::endl;
+  cr->set_line_cap(Cairo::LINE_CAP_ROUND);
+  cr->set_line_width(LINE_WIDTH);
+
+  //BACKGROUND
   cr->scale(width/2,height);        
   cr->set_source_rgba(m_Col_Back.get_red(),m_Col_Back.get_green(),m_Col_Back.get_blue(),m_Col_Back.get_alpha());
   cr->rectangle(0, 0, get_width(), get_height());
   cr->fill();
 
-  cr->set_line_cap(Cairo::LINE_CAP_ROUND);
-  cr->set_line_width(LINE_WIDTH);
-
+  //SPECIAL PATHS
   cr->set_source_rgba(m_Col_Path.get_red(),m_Col_Path.get_green(),m_Col_Path.get_blue(),m_Col_Path.get_alpha());
   
   for(auto u:paths)
@@ -234,6 +203,7 @@ bool Area::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
       cr->stroke();
     }
 
+  //PATHS
   cr->set_source_rgba(m_Col_Path_s.get_red(),m_Col_Path_s.get_green(),m_Col_Path_s.get_blue(),m_Col_Path_s.get_alpha());
   
   for(auto u:special_paths){
@@ -243,23 +213,16 @@ bool Area::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     cr->stroke();
   }
 
-  //cr->set_source_rgba(0.0, 0.6, 0.2, 0.8);
+  //POINTS
   cr->set_line_width(0);
   for(auto u:points){
-    //std::cerr << u.first << " = { " << u.second.first << " , " << u.second.second << " }" << std::endl;
-    //cr->save();
     cr->set_source_rgba(m_Col_Vertex.get_red(),m_Col_Vertex.get_green(),m_Col_Vertex.get_blue(),m_Col_Vertex.get_alpha());
     if(was_first_click && u.first == last_point_id)
       cr->set_source_rgba(m_Col_Vertex_s.get_red(),m_Col_Vertex_s.get_green(),m_Col_Vertex_s.get_blue(),m_Col_Vertex_s.get_alpha());
     cr->arc(u.second.first, u.second.second, R, 0.0, 2.0 * M_PI);
     cr->fill_preserve();  
-    //cr->restore();
     cr->stroke();
   }
-  /*cr->move_to(0, 0);
-  cr->line_to(width, height);
-  cr->move_to(0, height);
-  cr->line_to(width, 0);*/
   cr->stroke();
   return true;
 }
@@ -268,10 +231,8 @@ bool Area::export_graph(std::string filename){
   std::ofstream file(filename);
   if(!file.good())
     return false;
-  file << "p edge " << points.size() << " " << paths.size() << std::endl;
-  for(auto u: paths){
+  for(auto u: paths)
     file << "e " << u.first << " " << u.second << std::endl;
-  }
   file.close();
   return true;
 }
