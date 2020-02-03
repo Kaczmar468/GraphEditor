@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "area.h"
+//#include "settings.h"
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -18,7 +19,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_Button_Vertex.set_active(1);
   MainWindow::on_click_Vertex();
   m_Label.set_margin_top(8);
-  m_Label.set_margin_bottom(3);
+  m_Label.set_margin_bottom(0);
   m_AspectFrame.set(Gtk::ALIGN_FILL, Gtk::ALIGN_FILL, 2.0, false);
   /*m_AspectFrame.set_hexpand(true);
   m_AspectFrame.set_halign(Gtk::ALIGN_FILL);
@@ -38,8 +39,8 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
     sigc::mem_fun(*this, &MainWindow::on_action_import) );
   m_refActionGroup->add_action("export",
     sigc::mem_fun(*this, &MainWindow::on_action_export) );
-  m_refActionGroup->add_action("settings",
-    sigc::mem_fun(*this, &MainWindow::on_action_settings) );
+/*  m_refActionGroup->add_action("settings",
+    sigc::mem_fun(*this, &MainWindow::on_action_settings) );*/
   m_refActionGroup->add_action("quit",
     sigc::mem_fun(*this, &MainWindow::on_action_quit) );
 
@@ -63,13 +64,13 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
       "          <attribute name='accel'>&lt;Primary&gt;e</attribute>"
       "        </item>"
       "      </section>"
-      "      <section>"
+   /*   "      <section>"
       "        <item>"
       "          <attribute name='label' translatable='yes'>_Settings</attribute>"
       "          <attribute name='action'>menubar.settings</attribute>"
       "          <attribute name='accel'>&lt;Primary&gt;s</attribute>"
       "        </item>"
-      "      </section>"
+      "      </section>"*/
       "      <section>"
       "        <item>"
       "          <attribute name='label' translatable='yes'>_Quit</attribute>"
@@ -82,7 +83,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
       "</interface>";
   app->set_accel_for_action("menubar.import", "<Primary>o");
   app->set_accel_for_action("menubar.export", "<Primary>e");
-  app->set_accel_for_action("menubar.settings", "<Primary>s");
+  //app->set_accel_for_action("menubar.settings", "<Primary>s");
   app->set_accel_for_action("menubar.quit", "<Primary>q");
   m_refBuilder->add_from_string(ui_info);
   auto object = m_refBuilder->get_object("menubar");
@@ -92,7 +93,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   //m_Top_Box.set_border_width(2);
   //m_Bottom_Box.set_border_width(10);
 
-  m_ButtonBox.set_border_width(1);
+  m_ButtonBox.set_border_width(0);
   m_ButtonBox.set_layout(Gtk::BUTTONBOX_START);
   m_ButtonBox.set_spacing(2);
 
@@ -127,17 +128,30 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_Combo_Algorithms.append("Choose Algorithm");
   m_Combo_Algorithms.append("BFS");
   m_Combo_Algorithms.append("DFS");
-  m_Combo_Algorithms.append("Minimum spanning tree");
-  m_Combo_Algorithms.append("Number of connected components");
-  m_Combo_Algorithms.append("Shortest path");
+  //m_Combo_Algorithms.append("Minimum spanning tree");
+  m_Combo_Algorithms.append("Connected components");
+  //m_Combo_Algorithms.append("Shortest path");
   m_Combo_Algorithms.set_active(0);
 
   m_ButtonBox.add(m_Combo_Algorithms);
   m_Combo_Algorithms.signal_changed().connect( sigc::mem_fun(*this, &MainWindow::on_combo_changed) );
 
+  m_Combo_Colors.append("Change color");
+  m_Combo_Colors.append("Vertex");
+  m_Combo_Colors.append("Path");
+  m_Combo_Colors.append("Special vertex");
+  m_Combo_Colors.append("Special path");
+  //m_Combo_Colors.append("Minimum spanning tree");
+  m_Combo_Colors.append("Backgroung");
+  //m_Combo_Colors.append("Shortest path");
+  m_Combo_Colors.set_active(0);
+
+  m_ButtonBox.add(m_Combo_Colors);
+  m_Combo_Colors.signal_changed().connect( sigc::mem_fun(*this, &MainWindow::on_combo_colors_changed) );
+
   m_Top_Box.pack_start(m_ButtonBox, Gtk::PACK_EXPAND_WIDGET);
 
-  m_Bottom_Box.set_size_request(1000,500);
+  m_Bottom_Box.set_size_request(1100,550);
   m_Bottom_Box.pack_start(area, Gtk::PACK_EXPAND_WIDGET, 0);
 
   show_all_children();
@@ -254,10 +268,23 @@ void MainWindow::on_combo_changed()
     if(m_Button_Move.get_active())m_Button_Move.set_active(0);
     if(m_Button_Remove_Vertex.get_active())m_Button_Remove_Vertex.set_active(0);
     if(m_Button_Remove_Path.get_active())m_Button_Remove_Path.set_active(0);
-  }
-  if(!(text.empty())){
-    m_Label.set_text("Combo changed: " + text);
-    std::cout << "Combo changed: " << text << std::endl;
+    if(text=="BFS"){
+      m_Label.set_text("Choose a BFS source");
+      area.set_mode("BFS");
+      std::cout << "Combo changed: " << text << std::endl;
+
+    }else if(text=="DFS"){
+      area.set_mode("DFS");
+      m_Label.set_text("Choose a DFS source");
+      std::cout << "Combo changed: " << text << std::endl;
+    }else if(text=="Connected components"){
+      Glib::ustring temp="Your graph has " ;
+      temp+=std::to_string(area.nocc());
+      temp+=" connected components";
+      m_Label.set_text(temp );
+      std::cout << "Combo changed: " << text << std::endl;
+    }else
+      std::cout << "ComboBox didn't recognize text: " << text << std::endl;
   }
 }
 
@@ -373,7 +400,48 @@ void MainWindow::on_action_export()
   }
 }
 
-void MainWindow::on_action_settings()
-{
-  std::cout << "Settings" << std::endl;
+
+void MainWindow::on_combo_colors_changed(){
+  Glib::ustring text = m_Combo_Colors.get_active_text();
+  if(text=="Change color")return;
+  Gdk::RGBA m_Color;
+  Gtk::ColorChooserDialog dialog("Choose a color");
+  dialog.set_transient_for(*this);
+  //dialog.set_rgba(m_Color);
+
+  const int result = dialog.run();
+
+  //Handle the response:
+  switch(result)
+  {
+    case Gtk::RESPONSE_OK:
+    {
+      m_Color = dialog.get_rgba();
+      break;
+    }
+    case Gtk::RESPONSE_CANCEL:
+    {
+      std::cout << "Cancel clicked." << std::endl;
+      break;
+    }
+    default:
+    {
+      std::cout << "Unexpected button clicked: " << result << std::endl;
+      break;
+    }
+  }
+  if(text=="Vertex"){
+    area.set_color(m_Color,1);
+  }else if(text=="Path"){
+    area.set_color(m_Color,2);
+  }else if(text=="Special vertex"){
+    area.set_color(m_Color,3);
+  }else if(text=="Special path"){
+    area.set_color(m_Color,4);
+  }else if(text=="Backgroung"){
+    area.set_color(m_Color,5);
+  }else
+    std::cout << "ComboBox didn't recognize text: " << text << std::endl;
+  m_Combo_Colors.set_active(0);
+  area.finish_reading();
 }
