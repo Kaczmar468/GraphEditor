@@ -69,7 +69,7 @@ MainWindow::MainWindow(const Glib::RefPtr<Gtk::Application>& app):
   m_refBuilder->add_from_string(ui_info);
   auto object = m_refBuilder->get_object("menubar");
   auto gmenu = Glib::RefPtr<Gio::Menu>::cast_dynamic(object);
-  auto pMenuBar = Gtk::make_managed<Gtk::MenuBar>(gmenu);
+  auto pMenuBar = Gtk::manage(new Gtk::MenuBar(gmenu));
   m_Top_Box.pack_start(*pMenuBar, Gtk::PACK_SHRINK);
 
   m_ButtonBox.set_border_width(0);
