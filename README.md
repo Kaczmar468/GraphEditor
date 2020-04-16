@@ -54,5 +54,5 @@ e u v
 The lower-case character e signifies that this is an edge descriptor line. For an edge (u,v) the fields u and v specify its endpoints. 
 
 ## Screenshots
-	![alt test](img/scr1.jpg)
-	![alt test](img/scr2.jpg)
+	![alt test](img/scr1.png)
+	![alt test](img/scr2.png)
